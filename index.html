@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PropSearch — Búsqueda y comparación de propiedades</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="header-inner">
+    <a class="logo" href="#">
+      <div class="logo-icon">🏠</div>
+      <span class="logo-text">Prop<span>Search</span></span>
+    </a>
+    <div class="header-actions">
+      <button class="compare-btn hidden" id="headerCompareBtn">
+        Comparar
+        <span class="compare-count" id="headerCompareCount">0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <h1>Encontrá tu propiedad ideal</h1>
+  <p>Buscá, filtrá y comparar propiedades lado a lado</p>
+  <div class="search-box">
+    <span>🔍</span>
+    <input type="text" id="searchInput" placeholder="Barrio, ciudad, tipo de propiedad…" autocomplete="off">
+    <button id="btnSearch">Buscar</button>
+  </div>
+</section>
+
+<!-- ── FILTERS BAR ── -->
+<div class="filters-bar">
+  <div class="filters-inner">
+
+    <div class="filter-group">
+      <span class="filter-label">Tipo</span>
+      <select id="filterType">
+        <option value="">Todos</option>
+        <option value="apartamento">Apartamento</option>
+        <option value="casa">Casa</option>
+        <option value="loft">Loft</option>
+        <option value="ph">PH</option>
+        <option value="studio">Studio</option>
+        <option value="penthouse">Penthouse</option>
+      </select>
+    </div>
+
+    <div class="filter-sep"></div>
+
+    <div class="filter-group">
+      <span class="filter-label">Ciudad</span>
+      <select id="filterCity">
+        <option value="">Todas</option>
+        <option value="Buenos Aires">Buenos Aires</option>
+        <option value="GBA Norte">GBA Norte</option>
+      </select>
+    </div>
+
+    <div class="filter-sep"></div>
+
+    <div class="filter-group">
+      <span class="filter-label">Dorm.</span>
+      <select id="filterBeds">
+        <option value="">Cualquiera</option>
+        <option value="1">1+</option>
+        <option value="2">2+</option>
+        <option value="3">3+</option>
+        <option value="4">4+</option>
+      </select>
+    </div>
+
+    <div class="filter-sep"></div>
+
+    <div class="filter-group">
+      <span class="filter-label">Precio</span>
+      <div class="price-range">
+        <input type="number" id="filterPriceMin" placeholder="Mín. USD" min="0" step="10000">
+        <span>—</span>
+        <input type="number" id="filterPriceMax" placeholder="Máx. USD" min="0" step="10000">
+      </div>
+    </div>
+
+    <div class="filter-sep"></div>
+
+    <button class="btn-clear-filters" onclick="clearFilters()">Limpiar filtros</button>
+
+    <div class="sort-group">
+      <span class="filter-label">Ordenar</span>
+      <select id="filterSort">
+        <option value="relevance">Relevancia</option>
+        <option value="price-asc">Precio ↑</option>
+        <option value="price-desc">Precio ↓</option>
+        <option value="area-desc">Mayor superficie</option>
+        <option value="rating">Mejor rating</option>
+      </select>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<main>
+  <div class="results-bar">
+    <p class="results-count" id="resultsCount"></p>
+    <div class="view-toggle">
+      <button class="view-btn active" id="btnGrid" title="Vista grilla">⊞</button>
+      <button class="view-btn" id="btnList" title="Vista lista">☰</button>
+    </div>
+  </div>
+
+  <div class="property-grid" id="propertyGrid"></div>
+</main>
+
+<!-- ── COMPARE BAR ── -->
+<div class="compare-bar" id="compareBar">
+  <div class="compare-bar-inner">
+    <span class="compare-bar-label">Comparando:</span>
+    <div class="compare-bar-slots" id="compareSlots"></div>
+    <div class="compare-bar-actions">
+      <button class="btn-clear-compare" id="btnClearCompare">Limpiar</button>
+      <button class="btn-compare-now" id="btnCompareNow" disabled>Comparar ahora →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── COMPARISON MODAL ── -->
+<div class="modal-overlay" id="compareModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Comparación de propiedades</h2>
+      <button class="modal-close" onclick="closeModal('compareModal')">×</button>
+    </div>
+    <div class="comparison-table-wrap" id="compareTableWrap"></div>
+  </div>
+</div>
+
+<!-- ── DETAIL MODAL ── -->
+<div class="modal-overlay detail-modal" id="detailModal">
+  <div class="modal">
+    <div class="modal-header" style="position:absolute;top:0;right:0;left:0;background:transparent;border:none;z-index:10;padding:12px">
+      <span></span>
+      <button class="modal-close" onclick="closeModal('detailModal')" style="background:rgba(0,0,0,.5);color:#fff;border-radius:50%;width:32px;height:32px;font-size:18px">×</button>
+    </div>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div id="toast" style="
+  position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--gray-900); color:#fff; padding:10px 20px; border-radius:30px;
+  font-size:14px; font-weight:500; opacity:0; transition:opacity .25s,transform .25s;
+  z-index:999; pointer-events:none; white-space:nowrap;
+"></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
